@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
+  name        String
+  password    String
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  uploads     Upload[] @relation()
+
+  @@map("user")
+}
+
+enum UploadStatus {
+  uploading
+  finished
+  failed
+}
+
+model Upload {
+  id          Int           @id @default(autoincrement())
+  source      String
+  link        String?
+  userId      Int           @map("user_id")
+  status      UploadStatus  @default(uploading)
+  error       String?
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
+
+  user        User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("upload")
+}
