@@ -1,0 +1,49 @@
+version: '3.3'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: api_service
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  api-service:
+    build:
+      context: ./api-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/api_service?schema=public
+    depends_on:
+      - rabbitmq
+      - db
+
+  google-drive-service:
+    restart: on-failure
+    build:
+      context: ./google-drive-service
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - rabbitmq
+
+volumes:
+  db-data:
