@@ -21,7 +21,6 @@ export class GoogleDriveService {
     const response = await drive.files.create({
       requestBody: {
         name,
-        parents: ['1QGzHrwlD2lwPLMVHVAy10pdba1WsxDq3'],
       },
       media: {
         body: stream,
